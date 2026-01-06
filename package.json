@@ -1,0 +1,44 @@
+{
+  "name": "@zenstackhq/proxy",
+  "version": "0.2.0",
+  "description": "A CLI tool to run an Express server that proxies CRUD requests to a ZenStack backend",
+  "main": "index.js",
+  "publishConfig": {
+    "directory": "dist",
+    "linkDirectory": true
+  },
+  "bin": {
+    "zenstack-proxy": "./bin/cli.js"
+  },
+  "scripts": {
+    "clean": "rimraf dist",
+    "build": "pnpm clean && tsc && copyfiles -F \"bin/*\" dist && copyfiles ./README.md ./LICENSE ./package.json dist && pnpm pack dist --pack-destination ../build",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": ["zenstack", "proxy", "express", "cli"],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@prisma/adapter-better-sqlite3": "^6.2.1",
+    "@prisma/adapter-mariadb": "^7.1.0",
+    "@prisma/adapter-pg": "^6.18.0",
+    "@zenstackhq/server": "^2.0.0",
+    "colors": "^1.4.0",
+    "commander": "^12.0.0",
+    "cors": "^2.8.5",
+    "dotenv": "^17.2.3",
+    "express": "^4.19.2",
+    "mixpanel": "^0.19.1",
+    "semver": "^7.7.3",
+    "tsx": "^4.20.6"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/node": "^20.0.0",
+    "@types/semver": "^7.7.1",
+    "copyfiles": "^2.4.1",
+    "rimraf": "^4.0.0",
+    "typescript": "^5.0.0"
+  }
+}

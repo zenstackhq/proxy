@@ -15,7 +15,7 @@ permissions:
 
 jobs:
   build-test:
-    runs-on: buildjet-8vcpu-ubuntu-2204
+    runs-on: ubuntu-latest
 
     strategy:
       matrix:

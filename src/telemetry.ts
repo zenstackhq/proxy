@@ -1,6 +1,5 @@
 import { init, type Mixpanel } from 'mixpanel'
 import { randomUUID } from 'node:crypto'
-import fs from 'node:fs'
 import * as os from 'os'
 import { TELEMETRY_TRACKING_TOKEN } from './constants'
 import { isInCi } from './utils/is-ci'

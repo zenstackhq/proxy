@@ -143,8 +143,7 @@ function parseDatasource(
   // If still no URL found, throw error
   if (!url) {
     throw new CliError(
-      'No datasource URL found. For Prisma 7, ensure prisma.config.ts exists with datasource configuration, ' +
-        'or provide the URL via --datasource-url option.'
+      'No datasource URL found. For Prisma 7, ensure prisma.config.ts exists with datasource configuration, or provide the URL via --datasource-url option.'
     )
   }
 
@@ -174,7 +173,7 @@ function parseGenerator(content: string): GeneratorConfig {
   const outputMatch = generatorBlock.match(/output\s*=\s*['"]([^'"]+)['"]/)
   const output = outputMatch ? outputMatch[1] : undefined
 
-  // Exact engineType (optional)
+  // Extract engineType (optional)
   const engineTypeMatch = generatorBlock.match(/engineType\s*=\s*['"]([^'"]+)['"]/)
   const engineType = engineTypeMatch ? engineTypeMatch[1] : undefined
 

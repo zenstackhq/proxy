@@ -1,6 +1,6 @@
 import * as path from 'path'
 import express from 'express'
-import cros from 'cors'
+import cors from 'cors'
 import { ZenStackMiddleware } from '@zenstackhq/server/express'
 import { GeneratorConfig, ZModelConfig } from './zmodel-parser'
 import { getNodeModulesFolder, getPrismaVersion, getZenStackVersion } from './utils/version-utils'
@@ -109,7 +109,7 @@ function createAdapter(config: ZModelConfig, zmodelSchemaDir: string): any {
  * Loads PrismaClient, ModelMeta, enhance, and Enum modules for ZenStack
  */
 async function loadZenStackModules(
-  generator: GeneratorConfig,
+  zmodelConfig: ZModelConfig,
   zmodelSchemaDir: string,
   zenstackPath?: string
 ) {
@@ -121,11 +121,12 @@ async function loadZenStackModules(
   // Load Prisma Client - either from custom output or default @prisma/client
   let PrismaClient: any
 
+  const generator = zmodelConfig.generator
   if (generator.output) {
     // Use custom output path - resolve relative to zmodel schema file directory
     const prismaClientPath = path.isAbsolute(generator.output)
       ? path.join(generator.output, 'client')
-      : path.join(zmodelSchemaDir, 'prisma', generator.output, 'client')
+      : path.join(resolvePrismaSchemaDir(zmodelConfig, zmodelSchemaDir), generator.output, 'client')
     console.log(grey(`Loading Prisma client from: ${prismaClientPath}`))
     let prismaModule
     try {
@@ -182,7 +183,7 @@ export async function startServer(options: ServerOptions) {
   const { zenstackPath, port, zmodelConfig, zmodelSchemaDir } = options
 
   const { PrismaClient, modelMeta, enums, zenstackVersion } = await loadZenStackModules(
-    zmodelConfig.generator,
+    zmodelConfig,
     zmodelSchemaDir,
     zenstackPath
   )
@@ -207,8 +208,7 @@ export async function startServer(options: ServerOptions) {
 
   const app = express()
 
-  app.use(express.json())
-  app.use(cros())
+  app.use(cors())
   app.use(express.json({ limit: '5mb' }))
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
@@ -221,7 +221,7 @@ export async function startServer(options: ServerOptions) {
   )
 
   // Schema metadata endpoint
-  app.get('/api/schema', (req: any, res: any) => {
+  app.get('/api/schema', (_req, res: express.Response) => {
     const result = { ...modelMeta, enums: enums, zenstackVersion }
     res.json(result)
   })

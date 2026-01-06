@@ -63,14 +63,18 @@ export default async function () {
     await telemetry.trackCli(async () => {
       await program.parseAsync()
     })
-  } catch (e: any) {
+  } catch (e: unknown) {
     if (e instanceof CommanderError) {
       // ignore
       exitCode = e.exitCode
     } else if (e instanceof CliError) {
       console.error(red(e.message))
     } else {
-      console.error(red(`Unhandled error: ${e}`))
+      if (e instanceof Error) {
+        console.error(red(`Unhandled error: ${e.message}`))
+      } else {
+        console.error(red(`Unhandled error: ${String(e)}`))
+      }
     }
     if (telemetry.isTracking) {
       // give telemetry a chance to send events before exit

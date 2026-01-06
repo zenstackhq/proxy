@@ -21,11 +21,14 @@ export function getNodeModulesFolder(startPath?: string): string | undefined {
     return startPath
   } else if (fs.existsSync(path.join(startPath, 'node_modules'))) {
     return path.join(startPath, 'node_modules')
-  } else if (startPath !== '/') {
-    const parent = path.join(startPath, '..')
-    return getNodeModulesFolder(parent)
   } else {
-    return undefined
+    const parsed = path.parse(startPath)
+    if (parsed.root === startPath) {
+      return undefined
+    } else {
+      const parent = path.join(startPath, '..')
+      return getNodeModulesFolder(parent)
+    }
   }
 }
 

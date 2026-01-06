@@ -5,7 +5,7 @@ A CLI tool to run an Express server with ZenStack proxy integration directly fro
 ## Installation
 
 ```bash
-npm install zenstack-proxy
+npm install @zenstackhq/proxy
 ```
 
 ## Usage
@@ -20,7 +20,7 @@ zenstack-proxy [options]
 
 - `-z, --zenstack <path>` Path to ZenStack generated folder
 - `-p, --port <number>` Port number for the server (default: `8008`)
-- `-s  --schema <path>` - Path to ZModel schema file (default: "schema.zmodel")
+- `-s, --schema <path>` - Path to ZModel schema file (default: "schema.zmodel")
 - `-d, --datasource-url <url>` Datasource URL (overrides schema configuration)
 - `-l, --log <level...>` Query log levels (e.g., query, info, warn, error)
 

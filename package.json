@@ -1,6 +1,6 @@
 {
   "name": "@zenstackhq/proxy",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "A CLI tool to run an Express server that proxies CRUD requests to a ZenStack backend",
   "main": "index.js",
   "publishConfig": {
@@ -12,8 +12,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
-    "build": "pnpm clean && tsc && copyfiles -F \"bin/*\" dist && copyfiles ./README.md ./LICENSE ./package.json dist && pnpm pack dist --pack-destination ../build",
-    "prepublishOnly": "npm run build"
+    "build": "pnpm clean && tsc && copyfiles -F \"bin/*\" dist && copyfiles ./README.md ./LICENSE ./package.json dist && pnpm pack dist --pack-destination ../build"
   },
   "keywords": ["zenstack", "proxy", "express", "cli"],
   "author": "",

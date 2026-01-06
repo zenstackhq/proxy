@@ -15,8 +15,8 @@ importers:
         specifier: ^7.1.0
         version: 7.2.0
       '@prisma/adapter-pg':
-        specifier: ^6.18.0
-        version: 6.19.1
+        specifier: ^7.2.0
+        version: 7.2.0
       '@zenstackhq/server':
         specifier: ^2.0.0
         version: 2.22.2(@prisma/client@7.2.0(typescript@5.9.3))(zod@4.3.5)
@@ -232,8 +232,8 @@ packages:
   '@prisma/adapter-mariadb@7.2.0':
     resolution: {integrity: sha512-bOCnDgT79dWUW3RMf532ATeaRcDPLtbYoLvuvzg4Cb/KDnzc+yeSJDZTyVFg+C5peR0BN6jYzUnmQSiMyGd1UQ==}
 
-  '@prisma/adapter-pg@6.19.1':
-    resolution: {integrity: sha512-ty/DXF+DVU7AeawWKPMsmdWnzqovU3Pfex3rpG7HFnCQb7TKErAsh7SHMVeNCj9rl64cQgqjqD6OU5622XDQzA==}
+  '@prisma/adapter-pg@7.2.0':
+    resolution: {integrity: sha512-euIdQ13cRB2wZ3jPsnDnFhINquo1PYFPCg6yVL8b2rp3EdinQHsX9EDdCtRr489D5uhphcRk463OdQAFlsCr0w==}
 
   '@prisma/client-runtime-utils@7.2.0':
     resolution: {integrity: sha512-dn7oB53v0tqkB0wBdMuTNFNPdEbfICEUe82Tn9FoKAhJCUkDH+fmyEp0ClciGh+9Hp2Tuu2K52kth2MTLstvmA==}
@@ -1171,9 +1171,9 @@ snapshots:
       '@prisma/driver-adapter-utils': 7.2.0
       mariadb: 3.4.5
 
-  '@prisma/adapter-pg@6.19.1':
+  '@prisma/adapter-pg@7.2.0':
     dependencies:
-      '@prisma/driver-adapter-utils': 6.19.1
+      '@prisma/driver-adapter-utils': 7.2.0
       pg: 8.16.3
       postgres-array: 3.0.4
     transitivePeerDependencies:

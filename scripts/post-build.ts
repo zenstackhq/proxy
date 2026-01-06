@@ -4,7 +4,7 @@ import path from 'node:path'
 const token = process.env.TELEMETRY_TRACKING_TOKEN
 
 if (!token) {
-  throw new Error('TELEMETRY_TRACKING_TOKEN is not set.')
+  console.warn('TELEMETRY_TRACKING_TOKEN is not set.')
 } else {
   const filesToProcess = ['dist/constants.js']
   for (const file of filesToProcess) {

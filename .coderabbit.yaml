@@ -1,0 +1,10 @@
+# yaml-language-server: $schema=https://coderabbit.ai/integrations/schema.v2.json
+language: 'en-US'
+early_access: false
+reviews:
+    auto_review:
+        enabled: true
+        base_branches: ['dev', 'main']
+    sequence_diagrams: false
+chat:
+    auto_reply: true

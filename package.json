@@ -19,7 +19,7 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^6.2.1",
+    "@prisma/adapter-better-sqlite3": "^7.2.0",
     "@prisma/adapter-mariadb": "^7.1.0",
     "@prisma/adapter-pg": "^6.18.0",
     "@zenstackhq/server": "^2.0.0",

@@ -10,7 +10,6 @@ import 'dotenv/config'
 import { getVersion } from './utils/version-utils'
 import { telemetry } from './telemetry'
 import { CliError } from './cli-error'
-
 export function createProgram() {
   const program = new Command()
 
@@ -32,7 +31,7 @@ export function createProgram() {
         : path.join(process.cwd(), options.schema)
 
       if (!fs.existsSync(zmodelPath)) {
-        console.error(`Error: ZModel schema file not found: ${zmodelPath}`)
+        console.error(`ZModel schema file not found: ${zmodelPath}`)
         console.error('Please provide a valid path using the -s option.')
         process.exit(1)
       }

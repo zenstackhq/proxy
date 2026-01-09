@@ -1,6 +1,6 @@
 {
   "name": "@zenstackhq/proxy",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "A CLI tool to run an Express server that proxies CRUD requests to a ZenStack backend",
   "main": "index.js",
   "publishConfig": {
@@ -33,7 +33,8 @@
     "express": "^4.19.2",
     "mixpanel": "^0.19.1",
     "semver": "^7.7.3",
-    "tsx": "^4.20.6"
+    "tsx": "^4.20.6",
+    "uuid": "^13.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

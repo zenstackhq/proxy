@@ -1,7 +1,8 @@
 // modified from https://github.com/automation-stack/node-machine-id
 
 import { execSync } from 'child_process'
-import { createHash, randomUUID } from 'node:crypto'
+import { createHash } from 'node:crypto'
+import { v4 as uuid } from 'uuid'
 
 const { platform } = process
 const win32RegBinPath = {
@@ -31,7 +32,7 @@ function hash(guid: string): string {
   return createHash('sha256').update(guid).digest('hex')
 }
 
-function expose(result: string): string | undefined {
+function expose(result: string): string {
   switch (platform) {
     case 'darwin':
       return result
@@ -62,16 +63,13 @@ function expose(result: string): string | undefined {
 
 export function getMachineId() {
   if (!(platform in guid)) {
-    return randomUUID()
+    return uuid()
   }
   try {
     const value = execSync(guid[platform as keyof typeof guid])
     const id = expose(value.toString())
-    if (!id) {
-      return randomUUID()
-    }
     return hash(id)
   } catch {
-    return randomUUID()
+    return uuid()
   }
 }

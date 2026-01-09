@@ -157,7 +157,9 @@ function parseGenerator(content: string): GeneratorConfig {
   // Match generator block for prisma client
   const generatorMatch = content.match(/generator\s+\w+\s*\{([^}]+)\}/s)
   if (!generatorMatch) {
-    throw new CliError('No generator block found in zmodel schema')
+    throw new CliError(
+      'No generator block found in zmodel schema.\nZenStack V3 is not supported, V3 will have built-in proxy support soon.'
+    )
   }
 
   const generatorBlock = generatorMatch[1]

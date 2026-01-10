@@ -8,6 +8,7 @@ import isDocker from './utils/is-docker'
 import { isWsl } from './utils/is-wsl'
 import { getMachineId } from './utils/machine-id-utils'
 import { getPrismaVersion, getVersion } from './utils/version-utils'
+import { v5 as uuidv5 } from 'uuid'
 
 /**
  * Telemetry events
@@ -18,7 +19,7 @@ export type TelemetryEvents = 'proxy:start' | 'proxy:complete' | 'proxy:error'
  */
 export class Telemetry {
   private readonly mixpanel: Mixpanel | undefined
-  private readonly hostId = getMachineId()
+  private readonly hostId = this.getDeviceId()
   private readonly sessionid = randomUUID()
   private readonly _os_type = os.type()
   private readonly _os_release = os.release()
@@ -38,6 +39,12 @@ export class Telemetry {
         geolocate: true,
       })
     }
+  }
+
+  private getDeviceId() {
+    const hostId = getMachineId()
+    // namespace UUID for generating UUIDv5 from DNS 'zenstack.dev'
+    return uuidv5(hostId, '133cac15-3efb-50fa-b5fc-4b90e441e563')
   }
 
   get isTracking() {

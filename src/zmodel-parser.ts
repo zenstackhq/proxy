@@ -71,15 +71,9 @@ function loadPrismaConfig(schemaDir: string): string | null {
 
     // Use Function constructor to safely evaluate the object literal
     // This is safer than eval as it doesn't have access to the local scope
-    try {
-      const configFn = new Function('env', `return ${configObjectStr}`)
-      const config = configFn(env)
-
-      return config?.datasource?.url || null
-    } catch (evalError) {
-      console.warn(`Warning: Could not evaluate config object: ${evalError}`)
-      return null
-    }
+    const configFn = new Function('env', `return ${configObjectStr}`)
+    const config = configFn(env)
+    return config?.datasource?.url
   } catch (error) {
     if (error instanceof Error && error.message.includes('Environment variable')) {
       throw error
@@ -117,34 +111,43 @@ function parseDatasource(
     return { provider, url: datasourceUrlOverride }
   }
 
-  // Extract url from schema
-  let urlMatch = datasourceBlock.match(/url\s*=\s*['"]([^'"]+)['"]/)
+  // Extract url value using single regex (could be string literal, env() call, or expression)
+  const urlMatch = datasourceBlock.match(/url\s*=\s*([^\n]+)/)
   let url: string | null = null
 
   if (urlMatch) {
-    url = urlMatch[1]
-  } else {
-    // Try to match env("xxx")
-    const envMatch = datasourceBlock.match(/url\s*=\s*env\(\s*['"]([^'"]+)['"]\s*\)/)
-    if (envMatch) {
-      const envVar = envMatch[1]
-      const envValue = process.env[envVar]
-      if (envValue) {
-        url = envValue
+    const urlValueStr = urlMatch[1].trim()
+
+    // Create env helper function
+    const env = (varName: string) => {
+      const value = process.env[varName]
+      if (!value) {
+        throw new CliError(`Environment variable ${varName} is not set`)
       }
+      return value
+    }
+
+    try {
+      // Use Function constructor to evaluate the url value
+      const urlFn = new Function('env', `return ${urlValueStr}`)
+      url = urlFn(env)
+    } catch (evalError) {
+      throw new CliError(
+        'Could not evaluate datasource url from schema, you could provide it via -d option.'
+      )
+    }
+  } else {
+    url = loadPrismaConfig(schemaDir)
+    // If still no URL found, throw error
+    if (url == null) {
+      throw new CliError(
+        'No datasource URL found. For Prisma 7, ensure prisma.config.ts exists with datasource configuration, or provide the URL via -d option.'
+      )
     }
   }
 
-  // If no URL found in schema, try prisma.config.ts (Prisma 7)
   if (!url) {
-    url = loadPrismaConfig(schemaDir)
-  }
-
-  // If still no URL found, throw error
-  if (!url) {
-    throw new CliError(
-      'No datasource URL found. For Prisma 7, ensure prisma.config.ts exists with datasource configuration, or provide the URL via --datasource-url option.'
-    )
+    throw new CliError('datasource url has no value, you could provide it via -d option.')
   }
 
   return { provider, url }

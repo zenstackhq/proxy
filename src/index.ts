@@ -67,11 +67,14 @@ export default async function () {
       // ignore
       exitCode = e.exitCode
     } else if (e instanceof CliError) {
+      telemetry.trackError(e)
       console.error(red(e.message))
     } else {
       if (e instanceof Error) {
+        telemetry.trackError(e)
         console.error(red(`Unhandled error: ${e.message}`))
       } else {
+        telemetry.trackError(new Error(String(e)))
         console.error(red(`Unhandled error: ${String(e)}`))
       }
     }

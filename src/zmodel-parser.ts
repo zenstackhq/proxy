@@ -132,6 +132,9 @@ function parseDatasource(
       const urlFn = new Function('env', `return ${urlValueStr}`)
       url = urlFn(env)
     } catch (evalError) {
+      if (evalError instanceof CliError) {
+        throw evalError
+      }
       throw new CliError(
         'Could not evaluate datasource url from schema, you could provide it via -d option.'
       )

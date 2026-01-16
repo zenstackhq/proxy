@@ -75,7 +75,7 @@ function loadPrismaConfig(schemaDir: string): string | null {
     const config = configFn(env)
     return config?.datasource?.url
   } catch (error) {
-    if (error instanceof Error && error.message.includes('Environment variable')) {
+    if (error instanceof Error) {
       throw error
     }
     console.warn(`Warning: Failed to parse prisma.config.ts: ${error}`)
@@ -144,7 +144,7 @@ function parseDatasource(
     // If still no URL found, throw error
     if (url == null) {
       throw new CliError(
-        'No datasource URL found. For Prisma 7, ensure prisma.config.ts exists with datasource configuration, or provide the URL via -d option.'
+        'No datasource URL found. For Prisma 7, ensure prisma.config.ts exists with datasource configuration or directly provide the URL via -d option.'
       )
     }
   }

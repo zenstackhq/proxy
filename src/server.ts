@@ -2,7 +2,7 @@ import * as path from 'path'
 import express from 'express'
 import cors from 'cors'
 import { ZenStackMiddleware } from '@zenstackhq/server/express'
-import { GeneratorConfig, ZModelConfig } from './zmodel-parser'
+import { ZModelConfig } from './zmodel-parser'
 import { getNodeModulesFolder, getPrismaVersion, getZenStackVersion } from './utils/version-utils'
 import { blue, grey } from 'colors'
 import semver from 'semver'
@@ -46,6 +46,22 @@ function resolveSQLitePath(filePath: string, prismaSchemaDir: string): string {
   return path.join(prismaSchemaDir, filePath)
 }
 
+function redactDatabaseUrl(url: string): string {
+  try {
+    const parsedUrl = new URL(url)
+    if (parsedUrl.password) {
+      parsedUrl.password = '***'
+    }
+    if (parsedUrl.username) {
+      parsedUrl.username = '***'
+    }
+    return parsedUrl.toString()
+  } catch {
+    // If URL parsing fails, return the original (might be a file path for SQLite)
+    return url
+  }
+}
+
 /**
  * Create database adapter based on provider
  */
@@ -79,7 +95,7 @@ function createAdapter(config: ZModelConfig, zmodelSchemaDir: string): any {
     case 'postgresql': {
       try {
         const { PrismaPg } = require('@prisma/adapter-pg')
-        console.log(grey(`Connecting to PostgreSQL database at: ${url}`))
+        console.log(grey(`Connecting to PostgreSQL database at: ${redactDatabaseUrl(url)}`))
         return new PrismaPg({ connectionString: url })
       } catch (error) {
         throw new CliError(
@@ -90,7 +106,7 @@ function createAdapter(config: ZModelConfig, zmodelSchemaDir: string): any {
     case 'mysql': {
       try {
         const { PrismaMariaDB } = require('@prisma/adapter-mariadb')
-        console.log(grey(`Connecting to MySQL/MariaDB database at: ${url}`))
+        console.log(grey(`Connecting to MySQL/MariaDB database at: ${redactDatabaseUrl(url)}`))
         return new PrismaMariaDB({
           url,
         })

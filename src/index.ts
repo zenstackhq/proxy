@@ -20,7 +20,7 @@ export function createProgram() {
 
   program
     .option('-z, --zenstack <path>', 'Path to ZenStack generated folder')
-    .option('-p, --port <number>', 'Port number for the server', '8008')
+    .option('-p, --port <number>', 'Port number for the server', '2311')
     .option('-s, --schema <path>', 'Path to ZModel schema file', 'schema.zmodel')
     .option('-d, --datasource-url <url>', 'Datasource URL (overrides schema configuration)')
     .option('-l, --log <level...>', 'Query log levels (e.g., query, info, warn, error)')

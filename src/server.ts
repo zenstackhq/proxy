@@ -4,7 +4,7 @@ import cors from 'cors'
 import { ZenStackMiddleware } from '@zenstackhq/server/express'
 import { ZModelConfig } from './zmodel-parser'
 import { getNodeModulesFolder, getPrismaVersion, getZenStackVersion } from './utils/version-utils'
-import { blue, grey } from 'colors'
+import { blue, grey, red } from 'colors'
 import semver from 'semver'
 import { CliError } from './cli-error'
 
@@ -168,23 +168,29 @@ async function loadZenStackModules(
     enums = prismaModule.$Enums || {}
   }
 
-  let zenstackAbsPath = zenstackPath
+  const zenstackAbsPath = zenstackPath
     ? path.isAbsolute(zenstackPath)
       ? zenstackPath
       : path.join(process.cwd(), zenstackPath)
     : undefined
 
-  if (zenstackAbsPath) {
-    const modelMetaPath = path.join(zenstackAbsPath, 'model-meta')
+  let modelMetaPath: string | undefined
+  try {
+    if (zenstackAbsPath) {
+      modelMetaPath = path.join(zenstackAbsPath, 'model-meta')
+    } else {
+      modelMetaPath = '@zenstackhq/runtime/model-meta'
+    }
     modelMeta = require(modelMetaPath).default
-  } else {
-    modelMeta = require('@zenstackhq/runtime/model-meta').default
+  } catch {
+    throw new CliError(
+      `Failed to load ZenStack generated model meta from: ${modelMetaPath}\n` +
+        `Please run \`zenstack generate\` first or specify the correct output directory of ZenStack generated modules using the \`-z\` option.`
+    )
   }
 
   if (!modelMeta.models) {
-    throw new CliError(
-      'ZenStack generated modules not found. Please make sure `zenstack generate` has been run or specify the correct path using the `-z` option.'
-    )
+    throw new CliError(`Generated model meta not found. Please run \`zenstack generate\` first.`)
   }
 
   const zenstackVersion = getZenStackVersion()
@@ -245,6 +251,19 @@ export async function startServer(options: ServerOptions) {
   const server = app.listen(port, () => {
     console.log(`ZenStack proxy server is running on port: ${port}`)
     console.log(`ZenStack Studio is running at: ${blue('https://studio.zenstack.dev')}`)
+  })
+
+  server.on('error', (err: NodeJS.ErrnoException) => {
+    if (err.code === 'EADDRINUSE') {
+      console.error(
+        red(
+          `Port ${options.port} is already in use. Please choose a different port using -p option.`
+        )
+      )
+    } else {
+      throw new CliError(`Failed to start the server: ${err.message}`)
+    }
+    process.exit(1)
   })
 
   // Graceful shutdown

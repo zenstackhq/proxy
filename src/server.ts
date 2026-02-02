@@ -17,6 +17,8 @@ export interface ServerOptions {
 }
 
 type EnhancementKind = 'password' | 'omit' | 'policy' | 'validation' | 'delegate' | 'encryption'
+// enable all enhancements except policy
+const Enhancements: EnhancementKind[] = ['password', 'omit', 'validation', 'delegate', 'encryption']
 
 /**
  * Resolve the absolute path to the Prisma schema directory
@@ -239,14 +241,6 @@ export async function startServer(options: ServerOptions) {
     '/api/model',
     ZenStackMiddleware({
       getPrisma: () => {
-        // enable all enhancements except policy
-        const Enhancements: EnhancementKind[] = [
-          'password',
-          'omit',
-          'validation',
-          'delegate',
-          'encryption',
-        ]
         return enhanceFunc(
           prisma,
           {},

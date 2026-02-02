@@ -16,6 +16,8 @@ export interface ServerOptions {
   logLevel?: string[]
 }
 
+type EnhancementKind = 'password' | 'omit' | 'policy' | 'validation' | 'delegate' | 'encryption'
+
 /**
  * Resolve the absolute path to the Prisma schema directory
  */
@@ -136,6 +138,7 @@ async function loadZenStackModules(
   let enums: any
   // Load Prisma Client - either from custom output or default @prisma/client
   let PrismaClient: any
+  let enhanceFunc: any
 
   const generator = zmodelConfig.generator
   if (generator.output) {
@@ -174,17 +177,17 @@ async function loadZenStackModules(
       : path.join(process.cwd(), zenstackPath)
     : undefined
 
-  let modelMetaPath: string | undefined
   try {
     if (zenstackAbsPath) {
-      modelMetaPath = path.join(zenstackAbsPath, 'model-meta')
+      modelMeta = require(path.join(zenstackAbsPath, 'model-meta')).default
+      enhanceFunc = require(path.join(zenstackAbsPath, 'enhance')).enhance
     } else {
-      modelMetaPath = '@zenstackhq/runtime/model-meta'
+      modelMeta = require('@zenstackhq/runtime/model-meta').default
+      enhanceFunc = require('@zenstackhq/runtime').enhance
     }
-    modelMeta = require(modelMetaPath).default
   } catch {
     throw new CliError(
-      `Failed to load ZenStack generated model meta from: ${modelMetaPath}\n` +
+      `Failed to load ZenStack generated model meta from: ${zenstackAbsPath || '@zenstackhq/runtime'}\n` +
         `Please run \`zenstack generate\` first or specify the correct output directory of ZenStack generated modules using the \`-z\` option.`
     )
   }
@@ -195,7 +198,7 @@ async function loadZenStackModules(
 
   const zenstackVersion = getZenStackVersion()
 
-  return { PrismaClient, modelMeta, enums, zenstackVersion }
+  return { PrismaClient, modelMeta, enums, zenstackVersion, enhanceFunc }
 }
 
 /**
@@ -204,11 +207,8 @@ async function loadZenStackModules(
 export async function startServer(options: ServerOptions) {
   const { zenstackPath, port, zmodelConfig, zmodelSchemaDir } = options
 
-  const { PrismaClient, modelMeta, enums, zenstackVersion } = await loadZenStackModules(
-    zmodelConfig,
-    zmodelSchemaDir,
-    zenstackPath
-  )
+  const { PrismaClient, modelMeta, enums, zenstackVersion, enhanceFunc } =
+    await loadZenStackModules(zmodelConfig, zmodelSchemaDir, zenstackPath)
 
   const prismaVersion = getPrismaVersion()
 
@@ -238,7 +238,23 @@ export async function startServer(options: ServerOptions) {
   app.use(
     '/api/model',
     ZenStackMiddleware({
-      getPrisma: () => prisma,
+      getPrisma: () => {
+        // enable all enhancements except policy
+        const Enhancements: EnhancementKind[] = [
+          'password',
+          'omit',
+          'validation',
+          'delegate',
+          'encryption',
+        ]
+        return enhanceFunc(
+          prisma,
+          {},
+          {
+            kinds: Enhancements,
+          }
+        )
+      },
     })
   )
 

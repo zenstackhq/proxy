@@ -7,6 +7,7 @@ import { getNodeModulesFolder, getPrismaVersion, getZenStackVersion } from './ut
 import { blue, grey, red } from 'colors'
 import semver from 'semver'
 import { CliError } from './cli-error'
+import SuperJSON from 'superjson'
 
 export interface ServerOptions {
   zenstackPath: string | undefined
@@ -19,6 +20,25 @@ export interface ServerOptions {
 type EnhancementKind = 'password' | 'omit' | 'policy' | 'validation' | 'delegate' | 'encryption'
 // enable all enhancements except policy
 const Enhancements: EnhancementKind[] = ['password', 'omit', 'validation', 'delegate', 'encryption']
+
+const VALID_OPS = new Set([
+  'findMany',
+  'findUnique',
+  'findFirst',
+  'create',
+  'createMany',
+  'createManyAndReturn',
+  'update',
+  'updateMany',
+  'updateManyAndReturn',
+  'upsert',
+  'delete',
+  'deleteMany',
+  'count',
+  'aggregate',
+  'groupBy',
+  'exists',
+])
 
 /**
  * Resolve the absolute path to the Prisma schema directory
@@ -203,6 +223,90 @@ async function loadZenStackModules(
   return { PrismaClient, modelMeta, enums, zenstackVersion, enhanceFunc }
 }
 
+function makeError(message: string) {
+  return { status: 400, body: { error: message } }
+}
+
+function lowerCaseFirst(input: string) {
+  return input.charAt(0).toLowerCase() + input.slice(1)
+}
+
+function isValidModel(modelMeta: any, modelName: string): boolean {
+  return lowerCaseFirst(modelName) in modelMeta.models
+}
+
+function processRequestPayload(args: any) {
+  const { meta, ...rest } = args
+  if (meta?.serialization) {
+    // superjson deserialization
+    return SuperJSON.deserialize({ json: rest, meta: meta.serialization })
+  } else {
+    return args
+  }
+}
+
+async function handleTransaction(modelMeta: any, client: any, requestBody: unknown) {
+  const processedOps: Array<{ model: string; op: string; args: unknown }> = []
+  if (!requestBody || !Array.isArray(requestBody) || requestBody.length === 0) {
+    return makeError('request body must be a non-empty array of operations')
+  }
+  for (let i = 0; i < requestBody.length; i++) {
+    const item = requestBody[i]
+    if (!item || typeof item !== 'object') {
+      return makeError(`operation at index ${i} must be an object`)
+    }
+    const { model: itemModel, op: itemOp, args: itemArgs } = item as any
+    if (!itemModel || typeof itemModel !== 'string') {
+      return makeError(`operation at index ${i} is missing a valid "model" field`)
+    }
+    if (!itemOp || typeof itemOp !== 'string') {
+      return makeError(`operation at index ${i} is missing a valid "op" field`)
+    }
+    if (!VALID_OPS.has(itemOp)) {
+      return makeError(`operation at index ${i} has invalid op: ${itemOp}`)
+    }
+    if (!isValidModel(modelMeta, itemModel)) {
+      return makeError(`operation at index ${i} has unknown model: ${itemModel}`)
+    }
+    if (
+      itemArgs !== undefined &&
+      itemArgs !== null &&
+      (typeof itemArgs !== 'object' || Array.isArray(itemArgs))
+    ) {
+      return makeError(`operation at index ${i} has invalid "args" field`)
+    }
+
+    processedOps.push({
+      model: lowerCaseFirst(itemModel),
+      op: itemOp,
+      args: processRequestPayload(itemArgs),
+    })
+  }
+
+  try {
+    const clientResult = await client.$transaction(async (tx: any) => {
+      const result: any[] = []
+      for (const { model, op, args } of processedOps) {
+        result.push(await (tx as any)[model][op](args))
+      }
+      return result
+    })
+
+    const { json, meta } = SuperJSON.serialize(clientResult)
+    const responseBody: any = { data: json }
+    if (meta) {
+      responseBody.meta = { serialization: meta }
+    }
+
+    const response = { status: 200, body: responseBody }
+
+    return response
+  } catch (err) {
+    console.error('error occurred when handling "$transaction" request:', err)
+    return makeError('Transaction failed: ' + (err instanceof Error ? err.message : String(err)))
+  }
+}
+
 /**
  * Start the Express server with ZenStack proxy
  */
@@ -237,6 +341,22 @@ export async function startServer(options: ServerOptions) {
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
   // ZenStack API endpoint
+
+  app.post('/api/model/\\$transaction/sequential', async (_req, res) => {
+    const response = await handleTransaction(
+      modelMeta,
+      enhanceFunc(
+        prisma,
+        {},
+        {
+          kinds: Enhancements,
+        }
+      ),
+      _req.body
+    )
+    res.status(response.status).json(response.body)
+  })
+
   app.use(
     '/api/model',
     ZenStackMiddleware({

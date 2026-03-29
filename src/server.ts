@@ -223,8 +223,8 @@ async function loadZenStackModules(
   return { PrismaClient, modelMeta, enums, zenstackVersion, enhanceFunc }
 }
 
-function makeError(message: string) {
-  return { status: 400, body: { error: message } }
+function makeError(message: string, status = 400) {
+  return { status, body: { error: message } }
 }
 
 function lowerCaseFirst(input: string) {
@@ -236,6 +236,9 @@ function isValidModel(modelMeta: any, modelName: string): boolean {
 }
 
 function processRequestPayload(args: any) {
+  if (args === null || args === undefined) {
+    return args
+  }
   const { meta, ...rest } = args
   if (meta?.serialization) {
     // superjson deserialization
@@ -303,7 +306,10 @@ async function handleTransaction(modelMeta: any, client: any, requestBody: unkno
     return response
   } catch (err) {
     console.error('error occurred when handling "$transaction" request:', err)
-    return makeError('Transaction failed: ' + (err instanceof Error ? err.message : String(err)))
+    return makeError(
+      'Transaction failed: ' + (err instanceof Error ? err.message : String(err)),
+      500
+    )
   }
 }
 

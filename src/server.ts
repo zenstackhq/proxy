@@ -105,7 +105,11 @@ function createAdapter(config: ZModelConfig, zmodelSchemaDir: string): any {
             resolvedUrl = `file:${resolveSQLitePath(filePath, prismaSchemaDir)}`
           }
         }
-        const { PrismaBetterSQLite3 } = require('@prisma/adapter-better-sqlite3')
+        const _mod = require('@prisma/adapter-better-sqlite3')
+        //Prisma7 renamed PrismaBetterSqlite3 from PrismaBetterSQLite3, support both cases for compatibility
+        const PrismaBetterSQLite3 =
+          _mod.PrismaBetterSQLite3 ?? _mod.PrismaBetterSqlite3 ?? _mod.default
+
         console.log(grey(`Connecting to SQLite database at: ${resolvedUrl}`))
         return new PrismaBetterSQLite3({
           url: resolvedUrl,

@@ -9,11 +9,11 @@ importers:
   .:
     dependencies:
       '@prisma/adapter-better-sqlite3':
-        specifier: ^7.3.0
-        version: 7.3.0
+        specifier: ^6.18.0
+        version: 6.19.2
       '@prisma/adapter-mariadb':
-        specifier: ^7.1.0
-        version: 7.2.0
+        specifier: ^6.18.0
+        version: 6.19.2
       '@prisma/adapter-pg':
         specifier: ^6.18.0
         version: 6.19.1
@@ -232,11 +232,11 @@ packages:
     cpu: [x64]
     os: [win32]
 
-  '@prisma/adapter-better-sqlite3@7.3.0':
-    resolution: {integrity: sha512-DkELPte3cHGCZI1isizw+IdQHFVMU5zASJ/deeBY4R2apQV0RCA8XDG54iGmMhwLMusGTYijDVYuB1ruxEy0KQ==}
+  '@prisma/adapter-better-sqlite3@6.19.2':
+    resolution: {integrity: sha512-SCDyUS30NlHjgfghEfech1GYScxlDzedFBgNrlQk1bb9N/vGLwvtDwsMqaHlhusnrm2w1eMllTThBZ5vlIsEOQ==}
 
-  '@prisma/adapter-mariadb@7.2.0':
-    resolution: {integrity: sha512-bOCnDgT79dWUW3RMf532ATeaRcDPLtbYoLvuvzg4Cb/KDnzc+yeSJDZTyVFg+C5peR0BN6jYzUnmQSiMyGd1UQ==}
+  '@prisma/adapter-mariadb@6.19.2':
+    resolution: {integrity: sha512-HK4ZODHphyHDUC22jltApidFbxp411G20mElAF3046fDccVjFJQUxsgEeDyQzt4qXkAtVmNpVsz50fHoctUHVA==}
 
   '@prisma/adapter-pg@6.19.1':
     resolution: {integrity: sha512-ty/DXF+DVU7AeawWKPMsmdWnzqovU3Pfex3rpG7HFnCQb7TKErAsh7SHMVeNCj9rl64cQgqjqD6OU5622XDQzA==}
@@ -259,20 +259,14 @@ packages:
   '@prisma/debug@6.19.1':
     resolution: {integrity: sha512-h1JImhlAd/s5nhY/e9qkAzausWldbeT+e4nZF7A4zjDYBF4BZmKDt4y0jK7EZapqOm1kW7V0e9agV/iFDy3fWw==}
 
-  '@prisma/debug@7.2.0':
-    resolution: {integrity: sha512-YSGTiSlBAVJPzX4ONZmMotL+ozJwQjRmZweQNIq/ER0tQJKJynNkRB3kyvt37eOfsbMCXk3gnLF6J9OJ4QWftw==}
-
-  '@prisma/debug@7.3.0':
-    resolution: {integrity: sha512-yh/tHhraCzYkffsI1/3a7SHX8tpgbJu1NPnuxS4rEpJdWAUDHUH25F1EDo6PPzirpyLNkgPPZdhojQK804BGtg==}
+  '@prisma/debug@6.19.2':
+    resolution: {integrity: sha512-lFnEZsLdFLmEVCVNdskLDCL8Uup41GDfU0LUfquw+ercJC8ODTuL0WNKgOKmYxCJVvFwf0OuZBzW99DuWmoH2A==}
 
   '@prisma/driver-adapter-utils@6.19.1':
     resolution: {integrity: sha512-W6Ds1lOZ2H6VGikchhOYs9dfKgPymfS/FJjtgYRqNTxJyHRyHsfTzGG+MOAupeLhZFHPWPA8eX12gNbgAGT8/g==}
 
-  '@prisma/driver-adapter-utils@7.2.0':
-    resolution: {integrity: sha512-gzrUcbI9VmHS24Uf+0+7DNzdIw7keglJsD5m/MHxQOU68OhGVzlphQRobLiDMn8CHNA2XN8uugwKjudVtnfMVQ==}
-
-  '@prisma/driver-adapter-utils@7.3.0':
-    resolution: {integrity: sha512-Wdlezh1ck0Rq2dDINkfSkwbR53q53//Eo1vVqVLwtiZ0I6fuWDGNPxwq+SNAIHnsU+FD/m3aIJKevH3vF13U3w==}
+  '@prisma/driver-adapter-utils@6.19.2':
+    resolution: {integrity: sha512-tkHsL3jhx81eXg2oqtJH/1IEs8uEeUb1RpqHtwYqdNb176u9D0mnHRZM1/cKca/XhLpq49Nnd9XDxdMfWcKAYA==}
 
   '@types/body-parser@1.19.6':
     resolution: {integrity: sha512-HLFeCYgz89uk22N5Qg3dvGvsv46B8GLvKKo1zKG4NybA8U2DiEO3w9lqGg29t/tfLRJpJ6iQxnVw4OnB7MoM9g==}
@@ -355,9 +349,8 @@ packages:
   bcryptjs@2.4.3:
     resolution: {integrity: sha512-V/Hy/X9Vt7f3BbPJEi8BdVFMByHi+jNXrYkW3huaybV/kQ0KJg0Y6PkEMbn+zeT+i+SiKZ/HMqJGIIt4LZDqNQ==}
 
-  better-sqlite3@12.6.2:
-    resolution: {integrity: sha512-8VYKM3MjCa9WcaSAI3hzwhmyHVlH8tiGFwf0RlTsZPWJ1I5MkzjiudCo4KC4DxOaL/53A5B1sI/IbldNFDbsKA==}
-    engines: {node: 20.x || 22.x || 23.x || 24.x || 25.x}
+  better-sqlite3@11.10.0:
+    resolution: {integrity: sha512-EwhOpyXiOEL/lKzHz9AW1msWFNzGc/z+LzeB3/jnFJpxu+th2yqvzsSWas1v9jgs9+xiXJcD5A8CJxAG2TaghQ==}
 
   bindings@1.5.0:
     resolution: {integrity: sha512-p2q/t/mhvuOj/UeLlV6566GD/guowlr0hHxClI0W9m7MWYkL1F0hLo+0Aexs9HSPCtR1SXQ0TD3MMKrXZajbiQ==}
@@ -860,6 +853,7 @@ packages:
   prebuild-install@7.1.3:
     resolution: {integrity: sha512-8Mf2cbV7x1cXPUILADGI3wuhfqWvtiLA1iclTDbFRZkgRQS0NqsPZphna9V+HyTEadheuPmjaJMsbzKQFOzLug==}
     engines: {node: '>=10'}
+    deprecated: No longer maintained. Please contact the author of the relevant native addon; alternatives are available.
     hasBin: true
 
   process-nextick-args@2.0.1:
@@ -1190,14 +1184,14 @@ snapshots:
   '@esbuild/win32-x64@0.27.2':
     optional: true
 
-  '@prisma/adapter-better-sqlite3@7.3.0':
+  '@prisma/adapter-better-sqlite3@6.19.2':
     dependencies:
-      '@prisma/driver-adapter-utils': 7.3.0
-      better-sqlite3: 12.6.2
+      '@prisma/driver-adapter-utils': 6.19.2
+      better-sqlite3: 11.10.0
 
-  '@prisma/adapter-mariadb@7.2.0':
+  '@prisma/adapter-mariadb@6.19.2':
     dependencies:
-      '@prisma/driver-adapter-utils': 7.2.0
+      '@prisma/driver-adapter-utils': 6.19.2
       mariadb: 3.4.5
 
   '@prisma/adapter-pg@6.19.1':
@@ -1218,21 +1212,15 @@ snapshots:
 
   '@prisma/debug@6.19.1': {}
 
-  '@prisma/debug@7.2.0': {}
-
-  '@prisma/debug@7.3.0': {}
+  '@prisma/debug@6.19.2': {}
 
   '@prisma/driver-adapter-utils@6.19.1':
     dependencies:
       '@prisma/debug': 6.19.1
 
-  '@prisma/driver-adapter-utils@7.2.0':
+  '@prisma/driver-adapter-utils@6.19.2':
     dependencies:
-      '@prisma/debug': 7.2.0
-
-  '@prisma/driver-adapter-utils@7.3.0':
-    dependencies:
-      '@prisma/debug': 7.3.0
+      '@prisma/debug': 6.19.2
 
   '@types/body-parser@1.19.6':
     dependencies:
@@ -1337,7 +1325,7 @@ snapshots:
 
   bcryptjs@2.4.3: {}
 
-  better-sqlite3@12.6.2:
+  better-sqlite3@11.10.0:
     dependencies:
       bindings: 1.5.0
       prebuild-install: 7.1.3

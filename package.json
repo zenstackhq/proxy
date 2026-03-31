@@ -1,6 +1,6 @@
 {
   "name": "@zenstackhq/proxy",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "A CLI tool to run an Express server that proxies CRUD requests to a ZenStack backend",
   "main": "index.js",
   "publishConfig": {
@@ -29,8 +29,8 @@
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.3.0",
-    "@prisma/adapter-mariadb": "^7.1.0",
+    "@prisma/adapter-better-sqlite3": "^6.18.0",
+    "@prisma/adapter-mariadb": "^6.18.0",
     "@prisma/adapter-pg": "^6.18.0",
     "@zenstackhq/server": "^2.0.0",
     "colors": "^1.4.0",

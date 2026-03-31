@@ -133,9 +133,9 @@ function createAdapter(config: ZModelConfig, zmodelSchemaDir: string): any {
     }
     case 'mysql': {
       try {
-        const { PrismaMariaDB } = require('@prisma/adapter-mariadb')
+        const { PrismaMariaDb } = require('@prisma/adapter-mariadb')
         console.log(grey(`Connecting to MySQL/MariaDB database at: ${redactDatabaseUrl(url)}`))
-        return new PrismaMariaDB({
+        return new PrismaMariaDb({
           url,
         })
       } catch (error) {

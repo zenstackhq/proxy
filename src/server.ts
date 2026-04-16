@@ -384,7 +384,14 @@ export async function startServer(options: ServerOptions) {
 
   // Schema metadata endpoint
   app.get('/api/schema', (_req, res: express.Response) => {
-    const result = { ...modelMeta, enums: enums, zenstackVersion }
+    const result = {
+      ...modelMeta,
+      enums: enums,
+      zenstackVersion,
+      provider: {
+        type: zmodelConfig.datasource.provider,
+      },
+    }
     res.json(result)
   })
 

@@ -42,7 +42,7 @@
     "semver": "^7.7.3",
     "superjson": "^2.2.6",
     "tsx": "^4.20.6",
-    "uuid": "^13.0.0"
+    "uuid": "^14.0.0"
   },
   "devDependencies": {
     "@types/cors": "^2.8.17",

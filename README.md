@@ -22,6 +22,7 @@ zenstack-proxy [options]
 - `-p, --port <number>` Port number for the server (default: `8008`)
 - `-s, --schema <path>` - Path to ZModel schema file (default: "schema.zmodel")
 - `-d, --datasource-url <url>` Datasource URL (overrides schema configuration)
+- `--public-api-key <key>` Public API key used to verify `X-ZenStack-Signature` request headers
 - `-l, --log <level...>` Query log levels (e.g., query, info, warn, error)
 
 ### Examples
@@ -45,6 +46,19 @@ zenstack-proxy -s ./schema/schema.zmodel -z ./generated/zenstack
 ```bash
 zenstack-proxy -p 8888
 ```
+
+#### Enable signed requests
+
+```bash
+zenstack-proxy --public-api-key "MCowBQYDK2VwAyEAFSJV7wjdFuDz2CqYX7hGnITQvcmJYy7OJQq2Cy2Eiqs="
+```
+
+When `--public-api-key` is provided, every incoming request must include an `X-ZenStack-Signature` header in the format `t=<unix timestamp>,v1=<base64url signature>`.
+The signed message format matches ZenStack Studio: `payload + timestamp`.
+
+- For `GET` and `DELETE` requests, `payload` is the raw query string without the leading `?`.
+- For body-based requests, `payload` is the exact JSON request body string.
+- For requests without query params or a request body, `payload` is an empty string.
 
 ## Server Endpoints
 

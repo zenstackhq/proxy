@@ -18,6 +18,7 @@
   },
   "scripts": {
     "clean": "rimraf dist",
+    "test": "node --import tsx --test",
     "build": "pnpm clean && tsc && copyfiles -F \"bin/*\" dist && copyfiles ./README.md ./LICENSE ./package.json dist && pnpm pack dist --pack-destination ../build"
   },
   "keywords": [

@@ -8,6 +8,11 @@ import { blue, grey, red } from 'colors'
 import semver from 'semver'
 import { CliError } from './cli-error'
 import SuperJSON from 'superjson'
+import {
+  buildSignedPayload,
+  verifySignedRequest,
+  type RequestSignatureHeader,
+} from './signature-verifier'
 
 export interface ServerOptions {
   zenstackPath: string | undefined
@@ -15,6 +20,11 @@ export interface ServerOptions {
   zmodelConfig: ZModelConfig
   zmodelSchemaDir: string
   logLevel?: string[]
+  publicAPIKey?: string
+}
+
+type RequestWithRawBody = express.Request & {
+  rawBody?: string
 }
 
 type EnhancementKind = 'password' | 'omit' | 'policy' | 'validation' | 'delegate' | 'encryption'
@@ -321,7 +331,7 @@ async function handleTransaction(modelMeta: any, client: any, requestBody: unkno
  * Start the Express server with ZenStack proxy
  */
 export async function startServer(options: ServerOptions) {
-  const { zenstackPath, port, zmodelConfig, zmodelSchemaDir } = options
+  const { zenstackPath, port, zmodelConfig, zmodelSchemaDir, publicAPIKey } = options
 
   const { PrismaClient, modelMeta, enums, zenstackVersion, enhanceFunc } =
     await loadZenStackModules(zmodelConfig, zmodelSchemaDir, zenstackPath)
@@ -347,8 +357,49 @@ export async function startServer(options: ServerOptions) {
   const app = express()
 
   app.use(cors())
-  app.use(express.json({ limit: '5mb' }))
-  app.use(express.urlencoded({ extended: true, limit: '5mb' }))
+  app.use(
+    express.json({
+      limit: '5mb',
+      verify: (req, _res, buf) => {
+        ;(req as RequestWithRawBody).rawBody = buf.toString('utf8')
+      },
+    })
+  )
+  app.use(
+    express.urlencoded({
+      extended: true,
+      limit: '5mb',
+      verify: (req, _res, buf) => {
+        ;(req as RequestWithRawBody).rawBody = buf.toString('utf8')
+      },
+    })
+  )
+
+  if (publicAPIKey) {
+    console.log(grey('Request signature verification is enabled'))
+    app.use((req, res, next) => {
+      const payload = buildSignedPayload({
+        method: req.method,
+        rawQuery: req.originalUrl.includes('?')
+          ? req.originalUrl.slice(req.originalUrl.indexOf('?') + 1)
+          : '',
+        rawBody: (req as RequestWithRawBody).rawBody,
+      })
+
+      const verification = verifySignedRequest({
+        publicAPIKey,
+        payload,
+        header: req.header('x-zenstack-signature') as RequestSignatureHeader,
+      })
+
+      if (!verification.ok) {
+        res.status(401).json({ error: verification.error })
+        return
+      }
+
+      next()
+    })
+  }
 
   // ZenStack API endpoint
 

@@ -23,7 +23,6 @@ export function createProgram() {
     .option('-p, --port <number>', 'Port number for the server', '2311')
     .option('-s, --schema <path>', 'Path to ZModel schema file', 'schema.zmodel')
     .option('-d, --datasource-url <url>', 'Datasource URL (overrides schema configuration)')
-    .option('--public-api-key <key>', 'Public API key used to verify request signatures')
     .option('-l, --log <level...>', 'Query log levels (e.g., query, info, warn, error)')
     .option(
       '--studioAuthKey <key>',
@@ -66,7 +65,7 @@ export function createProgram() {
         zmodelConfig: zmodelConfig,
         zmodelSchemaDir: zmodelSchemaDir,
         logLevel: options.log,
-        publicAPIKey: options.publicApiKey,
+        studioAuthKey: options.studioAuthKey,
         signatureToleranceSecs: options.signatureToleranceSecs,
       })
     })

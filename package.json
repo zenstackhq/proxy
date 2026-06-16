@@ -1,6 +1,6 @@
 {
   "name": "@zenstackhq/proxy",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "A CLI tool to run an Express server that proxies CRUD requests to a ZenStack backend",
   "main": "index.js",
   "publishConfig": {

@@ -16,7 +16,7 @@ export interface ServerOptions {
   zmodelConfig: ZModelConfig
   zmodelSchemaDir: string
   logLevel?: string[]
-  publicAPIKey?: string
+  studioAuthKey?: string
   signatureToleranceSecs: number
 }
 
@@ -380,7 +380,7 @@ async function handleTransaction(modelMeta: any, client: any, requestBody: unkno
  * Start the Express server with ZenStack proxy
  */
 export async function startServer(options: ServerOptions) {
-  const { zenstackPath, port, zmodelConfig, zmodelSchemaDir, publicAPIKey } = options
+  const { zenstackPath, port, zmodelConfig, zmodelSchemaDir } = options
 
   const { PrismaClient, modelMeta, enums, zenstackVersion, enhanceFunc } =
     await loadZenStackModules(zmodelConfig, zmodelSchemaDir, zenstackPath)
@@ -404,8 +404,8 @@ export async function startServer(options: ServerOptions) {
   }
 
   // Warn when running without authentication.
-  const publicAPIKey = options.publicAPIKey ?? process.env['ZENSTACK_STUDIO_AUTH_KEY']
-  if (!publicAPIKey) {
+  const studioAuthKey = options.studioAuthKey ?? process.env['ZENSTACK_STUDIO_AUTH_KEY']
+  if (!studioAuthKey) {
     console.warn(
       yellow(
         'Warning: This proxy has no authentication. Do not expose it to the public network.\n' +
@@ -428,9 +428,9 @@ export async function startServer(options: ServerOptions) {
   )
   app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
-  if (publicAPIKey) {
+  if (studioAuthKey) {
     const toleranceSecs = options.signatureToleranceSecs ?? 60
-    const normalizedKey = normalizePublicKey(publicAPIKey)
+    const normalizedKey = normalizePublicKey(studioAuthKey)
     app.use(['/api/model', '/api/schema'], createSignatureMiddleware(normalizedKey, toleranceSecs))
   }
 
@@ -439,7 +439,7 @@ export async function startServer(options: ServerOptions) {
   app.post('/api/model/\\$transaction/sequential', async (_req, res) => {
     const response = await handleTransaction(
       modelMeta,
-      resolveEnhancedClient(prisma, enhanceFunc, _req, !!publicAPIKey),
+      resolveEnhancedClient(prisma, enhanceFunc, _req, !!studioAuthKey),
       _req.body
     )
     res.status(response.status).json(response.body)
@@ -449,7 +449,7 @@ export async function startServer(options: ServerOptions) {
     '/api/model',
     ZenStackMiddleware({
       getPrisma: (req) => {
-        return resolveEnhancedClient(prisma, enhanceFunc, req, !!publicAPIKey)
+        return resolveEnhancedClient(prisma, enhanceFunc, req, !!studioAuthKey)
       },
     })
   )

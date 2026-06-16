@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { Command, CommanderError } from 'commander'
+import { Command, CommanderError, Option } from 'commander'
 import * as path from 'path'
 import * as fs from 'fs'
 import { grey, red } from 'colors'
@@ -25,6 +25,24 @@ export function createProgram() {
     .option('-d, --datasource-url <url>', 'Datasource URL (overrides schema configuration)')
     .option('--public-api-key <key>', 'Public API key used to verify request signatures')
     .option('-l, --log <level...>', 'Query log levels (e.g., query, info, warn, error)')
+    .option(
+      '--studioAuthKey <key>',
+      'Authentication key from ZenStack Studio. When set, the proxy will only accept requests signed by your Studio project.\nCan also be set via the ZENSTACK_STUDIO_AUTH_KEY environment variable.'
+    )
+    .addOption(
+      new Option(
+        '--signatureToleranceSecs <seconds>',
+        'Maximum age (in seconds) of a signed request before it is rejected as a replay. Defaults to 60.'
+      )
+        .default(60)
+        .argParser((v) => {
+          const parsed = parseInt(v, 10)
+          if (isNaN(parsed) || parsed < 0) {
+            throw new CliError(`--signatureToleranceSecs must be a positive integer, got: ${v}`)
+          }
+          return parsed
+        })
+    )
     .action(async (options) => {
       // Determine ZModel schema path
       const zmodelPath = path.isAbsolute(options.schema)
@@ -49,6 +67,7 @@ export function createProgram() {
         zmodelSchemaDir: zmodelSchemaDir,
         logLevel: options.log,
         publicAPIKey: options.publicApiKey,
+        signatureToleranceSecs: options.signatureToleranceSecs,
       })
     })
 

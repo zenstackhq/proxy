@@ -4,15 +4,11 @@ import cors from 'cors'
 import { ZenStackMiddleware } from '@zenstackhq/server/express'
 import { ZModelConfig } from './zmodel-parser'
 import { getNodeModulesFolder, getPrismaVersion, getZenStackVersion } from './utils/version-utils'
-import { blue, grey, red } from 'colors'
+import { blue, grey, red, yellow } from 'colors'
 import semver from 'semver'
 import { CliError } from './cli-error'
 import SuperJSON from 'superjson'
-import {
-  buildSignedPayload,
-  verifySignedRequest,
-  type RequestSignatureHeader,
-} from './signature-verifier'
+import { createSignatureMiddleware, normalizePublicKey } from './signature'
 
 export interface ServerOptions {
   zenstackPath: string | undefined
@@ -21,11 +17,14 @@ export interface ServerOptions {
   zmodelSchemaDir: string
   logLevel?: string[]
   publicAPIKey?: string
+  signatureToleranceSecs: number
 }
 
-type RequestWithRawBody = express.Request & {
-  rawBody?: string
-}
+/**
+ * Represents the identity claim embedded in the Authorization header.
+ * The bearer token is a plain base64-encoded JSON string.
+ */
+type UserClaim = { type: 'superUser' } | { type: 'user'; data: Record<string, unknown> }
 
 type EnhancementKind = 'password' | 'omit' | 'policy' | 'validation' | 'delegate' | 'encryption'
 // enable all enhancements except policy
@@ -262,6 +261,56 @@ function processRequestPayload(args: any) {
   }
 }
 
+/**
+ * Resolves the appropriate enhanced Prisma client for a request based on the Authorization header.
+ *
+ * - No publicAPIKey configured (authEnabled=false): return the standard enhanced client.
+ * - superUser claim: return the standard enhanced client (no policy enforcement).
+ * - Regular user claim: return the policy-enhanced client with the user identity.
+ * - No / invalid token: return the standard enhanced client.
+ */
+function resolveEnhancedClient(
+  prisma: any,
+  enhanceFunc: (prisma: any, ctx: any, opts: any) => any,
+  req: express.Request,
+  authEnabled: boolean
+): any {
+  const baseClient = enhanceFunc(prisma, {}, { kinds: Enhancements })
+
+  const authHeader = req.headers['authorization']
+
+  if (!authEnabled && !authHeader) {
+    return baseClient
+  }
+
+  if (!authHeader?.startsWith('Bearer ')) {
+    return baseClient
+  }
+
+  const token = authHeader.substring(7)
+  let claim: UserClaim
+  try {
+    claim = JSON.parse(Buffer.from(token, 'base64').toString('utf8')) as UserClaim
+  } catch {
+    return baseClient
+  }
+
+  if (claim.type === 'superUser') {
+    return baseClient
+  }
+
+  if (claim.type === 'user') {
+    // Enable policy enforcement with the user's identity context.
+    return enhanceFunc(
+      prisma,
+      { user: claim.data },
+      { kinds: [...Enhancements, 'policy'] as EnhancementKind[] }
+    )
+  }
+
+  return baseClient
+}
+
 async function handleTransaction(modelMeta: any, client: any, requestBody: unknown) {
   const processedOps: Array<{ model: string; op: string; args: unknown }> = []
   if (!requestBody || !Array.isArray(requestBody) || requestBody.length === 0) {
@@ -354,6 +403,17 @@ export async function startServer(options: ServerOptions) {
     throw new CliError('Database connection failed: ' + err)
   }
 
+  // Warn when running without authentication.
+  const publicAPIKey = options.publicAPIKey ?? process.env['ZENSTACK_STUDIO_AUTH_KEY']
+  if (!publicAPIKey) {
+    console.warn(
+      yellow(
+        'Warning: This proxy has no authentication. Do not expose it to the public network.\n' +
+          'To secure it, get an API key from ZenStack Studio and set it via the ZENSTACK_STUDIO_AUTH_KEY environment variable.'
+      )
+    )
+  }
+
   const app = express()
 
   app.use(cors())
@@ -361,44 +421,17 @@ export async function startServer(options: ServerOptions) {
     express.json({
       limit: '5mb',
       verify: (req, _res, buf) => {
-        ;(req as RequestWithRawBody).rawBody = buf.toString('utf8')
+        // Capture the raw body string for use in signature verification.
+        ;(req as express.Request & { rawBody?: string }).rawBody = buf.toString('utf8')
       },
     })
   )
-  app.use(
-    express.urlencoded({
-      extended: true,
-      limit: '5mb',
-      verify: (req, _res, buf) => {
-        ;(req as RequestWithRawBody).rawBody = buf.toString('utf8')
-      },
-    })
-  )
+  app.use(express.urlencoded({ extended: true, limit: '5mb' }))
 
   if (publicAPIKey) {
-    console.log(grey('Request signature verification is enabled'))
-    app.use((req, res, next) => {
-      const payload = buildSignedPayload({
-        method: req.method,
-        rawQuery: req.originalUrl.includes('?')
-          ? req.originalUrl.slice(req.originalUrl.indexOf('?') + 1)
-          : '',
-        rawBody: (req as RequestWithRawBody).rawBody,
-      })
-
-      const verification = verifySignedRequest({
-        publicAPIKey,
-        payload,
-        header: req.header('x-zenstack-signature') as RequestSignatureHeader,
-      })
-
-      if (!verification.ok) {
-        res.status(401).json({ error: verification.error })
-        return
-      }
-
-      next()
-    })
+    const toleranceSecs = options.signatureToleranceSecs ?? 60
+    const normalizedKey = normalizePublicKey(publicAPIKey)
+    app.use(['/api/model', '/api/schema'], createSignatureMiddleware(normalizedKey, toleranceSecs))
   }
 
   // ZenStack API endpoint
@@ -406,13 +439,7 @@ export async function startServer(options: ServerOptions) {
   app.post('/api/model/\\$transaction/sequential', async (_req, res) => {
     const response = await handleTransaction(
       modelMeta,
-      enhanceFunc(
-        prisma,
-        {},
-        {
-          kinds: Enhancements,
-        }
-      ),
+      resolveEnhancedClient(prisma, enhanceFunc, _req, !!publicAPIKey),
       _req.body
     )
     res.status(response.status).json(response.body)
@@ -421,14 +448,8 @@ export async function startServer(options: ServerOptions) {
   app.use(
     '/api/model',
     ZenStackMiddleware({
-      getPrisma: () => {
-        return enhanceFunc(
-          prisma,
-          {},
-          {
-            kinds: Enhancements,
-          }
-        )
+      getPrisma: (req) => {
+        return resolveEnhancedClient(prisma, enhanceFunc, req, !!publicAPIKey)
       },
     })
   )

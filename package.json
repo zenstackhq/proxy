@@ -19,7 +19,7 @@
   "scripts": {
     "clean": "rimraf dist",
     "build": "pnpm clean && tsc && copyfiles -F \"bin/*\" dist && copyfiles ./README.md ./LICENSE ./package.json dist && pnpm pack dist --pack-destination ../build",
-    "test": "node --require tsx/cjs --test test/signature.test.ts"
+    "test": "node --require tsx/cjs --test test/**/*.test.ts src/**/*.test.ts"
   },
   "keywords": [
     "zenstack",

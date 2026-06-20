@@ -300,12 +300,12 @@ function resolveEnhancedClient(
   }
 
   if (claim.type === 'user') {
-    // Enable policy enforcement with the user's identity context.
-    return enhanceFunc(
-      prisma,
-      { user: claim.data },
-      { kinds: [...Enhancements, 'policy'] as EnhancementKind[] }
-    )
+    const isAnonymousUser = !claim.data || Object.keys(claim.data).length == 0
+    // Enable policy enforcement with the user's identity context
+    // For an anonymous user, pass undefined to avoide exception.
+    return enhanceFunc(prisma, isAnonymousUser ? undefined : { user: claim.data }, {
+      kinds: [...Enhancements, 'policy'] as EnhancementKind[],
+    })
   }
 
   return baseClient
